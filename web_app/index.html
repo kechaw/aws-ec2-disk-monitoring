@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Solution: Multi-Account AWS Disk Monitoring</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: "Warm Neutral Harmony" - A palette of warm grays and off-whites (slate, stone) with a supportive teal accent for calls to action and highlights, creating a professional and calm user experience. -->
+    <!-- Application Structure Plan: The application is designed as a single-page, vertically scrolling narrative dashboard. The user flow begins with a high-level problem statement, then moves to an interactive architectural diagram where clicking components reveals details. This is followed by sections for implementation specifics (like Ansible code), a simulated live dashboard with filtering, and finally, deep dives into scalability and security. This thematic, non-linear structure was chosen to allow different personas (e.g., a CTO, an architect) to engage with the content at their desired level of detail, making a dense technical report more accessible and explorable. The core interaction is the architectural explorer, which directly translates the report's main diagram into an interactive learning tool. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: High-Level Architecture -> Goal: Organize/Relationships -> Viz/Method: Interactive Diagram (HTML/CSS/JS) -> Interaction: Click component to show modal with details. -> Justification: Transforms a static diagram into the central, exploratory hub of the application, promoting user engagement. -> Library/Method: Vanilla JS with Tailwind CSS.
+        - Report Info: Disk Utilization Data -> Goal: Compare/Inform -> Viz/Method: Bar Chart -> Interaction: Filter by Account/Region. -> Justification: Provides a tangible, "easily digestible" example of the solution's output, demonstrating the end-user value. -> Library/Method: Chart.js.
+        - Report Info: Ansible Playbook -> Goal: Inform -> Viz/Method: Formatted Code Block -> Interaction: Static view. -> Justification: Presents technical code clearly and accurately for expert review. -> Library/Method: HTML `<pre><code>`.
+        - Report Info: Scalability/Security Details -> Goal: Inform -> Viz/Method: Accordion/Card Layout -> Interaction: Click to expand/reveal text. -> Justification: Manages information density, keeping the UI clean while allowing users to drill down into specific topics of interest without being overwhelmed. -> Library/Method: Vanilla JS with Tailwind CSS.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #1e293b; /* slate-800 */
+        }
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 50vh;
+            max-height: 450px;
+            width: 100%;
+            max-width: 900px;
+        }
+        .component {
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+        }
+        .component:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .active-nav {
+            color: #0f766e; /* teal-600 */
+            font-weight: 600;
+        }
+        .modal {
+            transition: opacity 0.25s ease;
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-40 shadow-sm">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl font-bold text-slate-700">AWS Monitoring Solution</h1>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#problem" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:text-teal-600">Problem</a>
+                        <a href="#architecture" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:text-teal-600">Architecture</a>
+                        <a href="#implementation" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:text-teal-600">Implementation</a>
+                        <a href="#dashboard" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:text-teal-600">Live Demo</a>
+                        <a href="#scalability" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:text-teal-600">Scalability</a>
+                        <a href="#security" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:text-teal-600">Security</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+
+        <section id="problem" class="text-center py-16">
+            <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Solving Multi-Account EC2 Disk Utilization Monitoring</h2>
+            <p class="mt-6 max-w-3xl mx-auto text-lg leading-8 text-slate-600">A large enterprise, expanded through acquisitions, faces fragmented visibility into EC2 disk utilization across numerous AWS accounts. The CTO requires a comprehensive, scalable solution to proactively monitor disk space, leveraging the company's existing Ansible tooling to mitigate operational risks like outages and performance degradation.</p>
+        </section>
+
+        <section id="architecture" class="py-16">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-slate-900">Interactive Architecture Explorer</h2>
+                <p class="mt-4 max-w-2xl mx-auto text-lg text-slate-600">This solution uses a hub-and-spoke model for security, scalability, and efficiency. Click on any component in the diagram below to learn more about its role, function, and implementation details within the monitoring framework.</p>
+            </div>
+
+            <div id="architecture-diagram" class="relative bg-white p-6 md:p-10 rounded-xl shadow-lg border border-slate-200">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+
+                    <div class="md:col-span-1 space-y-6">
+                        <div id="comp-ansible" class="component bg-teal-50 border-2 border-dashed border-teal-500 p-4 rounded-lg text-center" data-component="ansible">
+                            <h3 class="font-bold text-teal-800">Ansible Control Plane</h3>
+                            <p class="text-sm text-teal-700">EC2 in Shared Services Account</p>
+                            <span class="mt-2 inline-block text-2xl">⚙️</span>
+                        </div>
+                        <div class="text-center text-slate-500 text-3xl font-thin">↓</div>
+                        <div id="comp-iam" class="component bg-amber-50 border-2 border-dashed border-amber-500 p-4 rounded-lg text-center" data-component="iam">
+                            <h3 class="font-bold text-amber-800">Cross-Account IAM Roles</h3>
+                            <p class="text-sm text-amber-700">Secure, Temporary Access</p>
+                            <span class="mt-2 inline-block text-2xl">🔑</span>
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-1 space-y-4">
+                        <h4 class="text-center font-semibold text-slate-500">Spoke Accounts (Workloads)</h4>
+                        <div id="comp-spoke-a" class="component bg-slate-100 p-4 rounded-lg text-center border border-slate-200" data-component="spoke">
+                            <h3 class="font-semibold text-slate-700">Account A</h3>
+                            <p class="text-sm text-slate-500">EC2 Instances w/ SSM Agent</p>
+                        </div>
+                        <div id="comp-spoke-b" class="component bg-slate-100 p-4 rounded-lg text-center border border-slate-200" data-component="spoke">
+                            <h3 class="font-semibold text-slate-700">Account B</h3>
+                            <p class="text-sm text-slate-500">EC2 Instances w/ SSM Agent</p>
+                        </div>
+                        <div id="comp-spoke-c" class="component bg-slate-100 p-4 rounded-lg text-center border border-slate-200" data-component="spoke">
+                            <h3 class="font-semibold text-slate-700">Account C ...</h3>
+                            <p class="text-sm text-slate-500">EC2 Instances w/ SSM Agent</p>
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-1 space-y-6">
+                        <div id="comp-s3" class="component bg-sky-50 border-2 border-dashed border-sky-500 p-4 rounded-lg text-center" data-component="s3">
+                            <h3 class="font-bold text-sky-800">Central S3 Bucket</h3>
+                            <p class="text-sm text-sky-700">Raw Data Storage</p>
+                            <span class="mt-2 inline-block text-2xl">🗄️</span>
+                        </div>
+                        <div class="text-center text-slate-500 text-3xl font-thin">↓</div>
+                        <div id="comp-processing" class="component bg-violet-50 border-2 border-dashed border-violet-500 p-4 rounded-lg text-center" data-component="processing">
+                            <h3 class="font-bold text-violet-800">Data Processing & Viz</h3>
+                            <p class="text-sm text-violet-700">Lambda, CloudWatch, etc.</p>
+                            <span class="mt-2 inline-block text-2xl">📊</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="absolute inset-0 flex items-center justify-center -z-10">
+                    <div class="w-full h-px bg-slate-200"></div>
+                    <div class="w-px h-full bg-slate-200"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="implementation" class="py-16">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-slate-900">Implementation Deep Dive</h2>
+                <p class="mt-4 max-w-2xl mx-auto text-lg text-slate-600">This section provides the core technical assets for the solution. The Ansible playbook orchestrates the execution of a **single generic script** on both Linux and Windows instances via AWS Systems Manager.</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+                <div class="p-6 md:p-8">
+                    <h3 class="text-xl font-bold text-slate-800 mb-4">Ansible Playbook: `collect_disk_metrics.yml`</h3>
+                    <p class="text-slate-600 mb-6">This playbook leverages the `aws_ssm` module to run a single, intelligent script on target instances. The script automatically detects the OS (Linux/Windows) and runs the appropriate disk utilization commands, outputting a consistent JSON payload.</p>
+                    <div class="bg-slate-900 rounded-lg p-4 text-sm text-slate-200 overflow-x-auto">
+                        <pre><code>---
