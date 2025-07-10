@@ -1,0 +1,33 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "sts:AssumeRole",
+            "Resource": "arn:aws:iam::*:role/AnsibleExecutionRole",
+            "Condition": {
+                "StringEquals": {
+                    "sts:ExternalId": "ansible-disk-monitoring"
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeInstances",
+                "ec2:DescribeRegions"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssm:SendCommand",
+                "ssm:GetCommandInvocation",
+                "ssm:ListCommands",
+                "ssm:ListCommandInvocations"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
