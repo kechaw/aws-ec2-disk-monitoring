@@ -1,0 +1,16 @@
+---
+- name: Parse disk output JSON
+  ansible.builtin.set_fact:
+    parsed_output: "{{ result_item.command.InvocationResult.StandardOutputContent | from_json }}"
+  when:
+    - result_item.command.InvocationResult.StandardOutputContent is defined
+    - result_item.command.InvocationResult.StandardOutputContent | length > 0
+
+- name: Upload parsed disk data to S3
+  community.aws.aws_s3:
+    bucket: "{{ s3_bucket_name }}"
+    object: "raw/disk_utilization/{{ parsed_output.account_id }}/{{ parsed_output.instance_id }}/{{ parsed_output.timestamp | replace(':', '-') | replace('.', '-') }}.json"
+    content: "{{ parsed_output | to_json }}"
+    mode: put
+    region: "{{ s3_region }}"
+  when: parsed_output is defined
