@@ -1,0 +1,48 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssm:StartSession",
+                "ssm:TerminateSession",
+                "ssm:ResumeSession",
+                "ssm:SendCommand",
+                "ssm:GetCommandInvocation",
+                "ssm:UpdateInstanceInformation",
+                "ssm:DescribeInstanceInformation",
+                "ssm:ListAssociations",
+                "ssm:UpdateAssociationStatus",
+                "ssm:GetDocument"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject",
+                "s3:GetObject"
+            ],
+            "Resource": "arn:aws:s3:::[YOUR_CENTRAL_S3_BUCKET_NAME]/*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+                "logs:DescribeLogGroups",
+                "logs:DescribeLogStreams"
+            ],
+            "Resource": "arn:aws:logs:*:*:log-group:/aws/ssm/*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeInstances",
+                "ec2:DescribeTags"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
