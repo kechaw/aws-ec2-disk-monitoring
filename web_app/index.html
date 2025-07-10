@@ -145,8 +145,8 @@
             </div>
             <div class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
                 <div class="p-6 md:p-8">
-                    <h3 class="text-xl font-bold text-slate-800 mb-4">Ansible Playbook: `disk_monitor.yml`</h3>
-                    <p class="text-slate-600 mb-6">This playbook uses the `shell` module to execute `df -h` on target Linux instances, parses the output, constructs a JSON payload, and uploads it to the central S3 bucket. It's designed to be run periodically via cron or a CI/CD pipeline.</p>
+                    <h3 class="text-xl font-bold text-slate-800 mb-4">Ansible Playbook: `collect_disk_metrics.yml`</h3>
+                    <p class="text-slate-600 mb-6">This playbook leverages the `aws_ssm` module to run a single, intelligent script on target instances. The script automatically detects the OS (Linux/Windows) and runs the appropriate disk utilization commands, outputting a consistent JSON payload. The full script content is located in the `ansible/files/generic_disk_script.sh` file.</p>
                     <div class="bg-slate-900 rounded-lg p-4 text-sm text-slate-200 overflow-x-auto">
                         <pre><code>---
 ---
