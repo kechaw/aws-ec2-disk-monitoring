@@ -4,12 +4,12 @@ This repository contains the design and implementation details for a comprehensi
 
 ## Table of Contents
 
-1.  [Project Overview](#1.project-overview)
-2.  [Architecture](#architecture)
-3.  [Ansible Implementation](#ansible-implementation)
-4.  [Solution Components](#solution-components)
-5.  [Interactive Web Application](#interactive-web-application)
-6.  [Scalability & Security](#scalability--security)
+1.  [Project Overview](#1-project-overview)
+2.  [Architecture](#2-architecture)
+3.  [Ansible Implementation](#3-ansible-implementation)
+4.  [Solution Components](#4-solution-components)
+5.  [Interactive Web Application](#5-interactive-web-application)
+6.  [Scalability & Security](#6-scalability--security)
 
 ## 1. Project Overview
 
