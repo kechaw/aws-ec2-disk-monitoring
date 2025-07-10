@@ -1,0 +1,51 @@
+---
+- name: Collect EC2 Disk Utilization
+  hosts: all
+  gather_facts: no
+
+  vars:
+    s3_bucket_name: "central-monitoring-s3-bucket"
+    s3_region: "us-east-1"
+    disk_collection_script_content: "{{ lookup('file', 'files/generic_disk_script.sh') }}"
+
+  tasks:
+    - name: Debug EC2 instance IDs being targeted (optional)
+      debug:
+        msg: "Targeting instance ID: {{ hostvars[item].ec2_instance_id | default('N/A') }}"
+      loop: "{{ ansible_play_batch }}"
+      when: hostvars[item].ec2_instance_id is defined
+
+    - name: Execute generic disk utilization script via SSM
+      amazon.aws.aws_ssm:
+        state: "command"
+        document_name: "AWS-RunShellScript"
+        instance_ids: "{{ ansible_play_batch | map('extract', hostvars, 'ec2_instance_id') | list }}"
+        parameters:
+          commands:
+            - "{{ disk_collection_script_content }}"
+        region: "{{ s3_region }}"
+      register: ssm_command_init_result
+      delegate_to: localhost
+
+    - name: Wait for SSM command to complete for each instance
+      amazon.aws.aws_ssm_info:
+        command_id: "{{ ssm_command_init_result.command.CommandId }}"
+        instance_id: "{{ item }}"
+        region: "{{ s3_region }}"
+      register: ssm_command_poll_result
+      loop: "{{ ansible_play_batch | map('extract', hostvars, 'ec2_instance_id') | list }}"
+      loop_control:
+        loop_var: instance_id
+      until: ssm_command_poll_result.command.InvocationResult.Status in ['Success', 'Failed', 'Cancelled']
+      retries: 30
+      delay: 10
+
+    - name: Process and Upload output to S3
+      ansible.builtin.include_tasks: process_and_upload_output.yml
+      loop: "{{ ssm_command_poll_result.results }}"
+      loop_control:
+        loop_var: result_item
+      when:
+        - result_item.command.InvocationResult.Status == 'Success'
+        - result_item.command.InvocationResult.StandardOutputContent is defined
+        - result_item.command.InvocationResult.StandardOutputContent | length > 0
