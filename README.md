@@ -37,7 +37,7 @@ A summary of all the AWS services and tools involved in this solution, along wit
 
 An interactive, single-page web application is provided to demonstrate how the collected data can be visualized and explored. This application is designed to make the solution's output easily consumable.
 
-* **Launch the Web App:** Open `web_app/index.html` in your web browser.
+* **Launch the Web App:** Open this [Github-Page](https://kechaw.github.io/aws-ec2-disk-monitoring/web_app/index.html) in your web browser.
 
 ## 6. Scalability & Security
 
