@@ -149,48 +149,57 @@
                     <p class="text-slate-600 mb-6">This playbook uses the `shell` module to execute `df -h` on target Linux instances, parses the output, constructs a JSON payload, and uploads it to the central S3 bucket. It's designed to be run periodically via cron or a CI/CD pipeline.</p>
                     <div class="bg-slate-900 rounded-lg p-4 text-sm text-slate-200 overflow-x-auto">
                         <pre><code>---
+---
 - name: Collect EC2 Disk Utilization
-  hosts: all # Or a specific group like tag_Environment_Production
+  hosts: all
   gather_facts: no
 
   vars:
     s3_bucket_name: "central-monitoring-s3-bucket"
     s3_region: "us-east-1"
+    disk_collection_script_content: "{{ lookup('file', 'files/generic_disk_script.sh') }}"
 
   tasks:
-    - name: Get disk utilization on Linux instances
-      ansible.builtin.shell: |
-        df -h --output=source,pcent,target | grep -E '^/dev/' | awk '{print $1","$2","$3}'
-      register: disk_output
+    - name: Debug EC2 instance IDs being targeted (optional)
+      debug:
+        msg: "Targeting instance ID: {{ hostvars[item].ec2_instance_id | default('N/A') }}"
+      loop: "{{ ansible_play_batch }}"
+      when: hostvars[item].ec2_instance_id is defined
 
-    - name: Construct JSON payload for disk metrics
-      ansible.builtin.set_fact:
-        metrics_payload: |
-          {
-            "instance_id": "{{ ansible_facts['ec2_instance_id'] }}",
-            "account_id": "{{ lookup('aws_account_info').account_id }}",
-            "timestamp": "{{ ansible_date_time.iso8601 }}",
-            "metrics": [
-              {% for line in disk_output.stdout_lines %}
-              {% set parts = line.split(',') %}
-              {
-                "device": "{{ parts[0] }}",
-                "utilization_percent": {{ (parts[1] | replace('%', '')) | int }},
-                "mount_point": "{{ parts[2] }}"
-              }{{ "," if not loop.last }}
-              {% endfor %}
-            ]
-          }
-      when: disk_output.stdout is defined
-
-    - name: Send disk utilization data to central S3 bucket
-      community.aws.aws_s3:
-        bucket: "{{ s3_bucket_name }}"
-        object: "raw/disk_utilization/{{ ansible_facts['ec2_instance_id'] }}/{{ ansible_date_time.iso8601 }}.json"
-        content: "{{ metrics_payload }}"
-        mode: put
+    - name: Execute generic disk utilization script via SSM
+      amazon.aws.aws_ssm:
+        state: "command"
+        document_name: "AWS-RunShellScript"
+        instance_ids: "{{ ansible_play_batch | map('extract', hostvars, 'ec2_instance_id') | list }}"
+        parameters:
+          commands:
+            - "{{ disk_collection_script_content }}"
         region: "{{ s3_region }}"
-      when: metrics_payload is defined
+      register: ssm_command_init_result
+      delegate_to: localhost
+
+    - name: Wait for SSM command to complete for each instance
+      amazon.aws.aws_ssm_info:
+        command_id: "{{ ssm_command_init_result.command.CommandId }}"
+        instance_id: "{{ item }}"
+        region: "{{ s3_region }}"
+      register: ssm_command_poll_result
+      loop: "{{ ansible_play_batch | map('extract', hostvars, 'ec2_instance_id') | list }}"
+      loop_control:
+        loop_var: instance_id
+      until: ssm_command_poll_result.command.InvocationResult.Status in ['Success', 'Failed', 'Cancelled']
+      retries: 30
+      delay: 10
+
+    - name: Process and Upload output to S3
+      ansible.builtin.include_tasks: process_and_upload_output.yml
+      loop: "{{ ssm_command_poll_result.results }}"
+      loop_control:
+        loop_var: result_item
+      when:
+        - result_item.command.InvocationResult.Status == 'Success'
+        - result_item.command.InvocationResult.StandardOutputContent is defined
+        - result_item.command.InvocationResult.StandardOutputContent | length > 0
 </code></pre>
                     </div>
                 </div>
