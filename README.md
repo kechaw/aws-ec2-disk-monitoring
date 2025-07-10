@@ -4,7 +4,7 @@ This repository contains the design and implementation details for a comprehensi
 
 ## Table of Contents
 
-1.  [Project Overview](#project-overview)
+1.  [Project Overview](#1.project-overview)
 2.  [Architecture](#architecture)
 3.  [Ansible Implementation](#ansible-implementation)
 4.  [Solution Components](#solution-components)
